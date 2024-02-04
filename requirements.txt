@@ -1,0 +1,8 @@
+pandas
+plotly
+yfinance
+numpy
+scikit-learn
+matplotlib
+Pyarrow
+nbformat
