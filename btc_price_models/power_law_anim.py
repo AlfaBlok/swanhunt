@@ -136,11 +136,12 @@ def get_params_and_r2(full_data_after_year, clean_peaks_after_year, clean_trough
     r2_troughs = 1 - (SS_res_troughs / SS_tot_troughs)
     return peak_model_params, trough_model_params, r2_peaks, r2_troughs, peak_prices, trough_prices
 
-def get_figure(full_data_after_year, clean_peaks_after_year, clean_troughs_after_year, max_year, current_date, min_y, max_y,symbol, ax=None):
+def get_figure(full_data_after_year, clean_peaks_after_year, clean_troughs_after_year, max_year, current_date, min_y, max_y, symbol, ax=None):
     print('Getting figure')
     print('Clean peaks:', clean_peaks_after_year)
     print('Clean troughs:', clean_troughs_after_year)
-    if len(clean_peaks_after_year)>0 and len(clean_troughs_after_year)>0 :
+    
+    if len(clean_peaks_after_year) > 0 and len(clean_troughs_after_year) > 0:
         print('Getting params')
         params = get_params_and_r2(full_data_after_year, clean_peaks_after_year, clean_troughs_after_year)
         
@@ -156,27 +157,23 @@ def get_figure(full_data_after_year, clean_peaks_after_year, clean_troughs_after
     else:
         peak_model_params, trough_model_params, r2_peaks, r2_troughs, mid_model_params, peak_prices, trough_prices = [None] * 7
         mid_model_params = [None, None]
-    print('first date: ',full_data_after_year['date'])
+    
     future_dates = pd.date_range(start=full_data_after_year['date'].iloc[-1], end=str(max_year)+'-12-31', freq='D')
-    future_dates = future_dates[~future_dates.isin(full_data_after_year['date'])]
+    future_index = range(len(full_data_after_year), len(full_data_after_year) + len(future_dates))
 
-    full_dates = pd.concat([full_data_after_year['date'], pd.Series(future_dates)])
-    full_index = np.arange(len(full_dates))
-
-    combined_model_price_peaks = np.exp(peak_model_params[1]) * np.array(full_index) ** peak_model_params[0] if peak_model_params is not None else None
-    combined_model_price_troughs = np.exp(trough_model_params[1]) * np.array(full_index) ** trough_model_params[0] if trough_model_params is not None else None
-    combined_model_price_mid = np.exp(mid_model_params[1]) * np.array(full_index) ** mid_model_params[0] if mid_model_params[0] is not None else None
+    future_model_price_peaks = np.exp(peak_model_params[1]) * np.array(future_index) ** peak_model_params[0] if peak_model_params is not None else None
+    future_model_price_troughs = np.exp(trough_model_params[1]) * np.array(future_index) ** trough_model_params[0] if trough_model_params is not None else None
+    future_model_price_mid = np.exp(mid_model_params[1]) * np.array(future_index) ** mid_model_params[0] if mid_model_params[0] is not None else None
 
     combined_dates = sorted(pd.concat([full_data_after_year['date'], pd.Series(future_dates)]))
-    
-    # combined_model_price_peaks = np.concatenate([full_data_after_year['model_price_peaks'], future_model_price_peaks]) if future_model_price_peaks is not None else None
-    # combined_model_price_troughs = np.concatenate([full_data_after_year['model_price_troughs'], future_model_price_troughs]) if future_model_price_troughs is not None else None
-    # combined_model_price_mid = np.concatenate([np.exp(mid_model_params[1]) * full_data_after_year.index ** mid_model_params[0], future_model_price_mid]) if mid_model_params[0] is not None else None
+    combined_model_price_peaks = np.concatenate([full_data_after_year['model_price_peaks'], future_model_price_peaks]) if future_model_price_peaks is not None else None
+    combined_model_price_troughs = np.concatenate([full_data_after_year['model_price_troughs'], future_model_price_troughs]) if future_model_price_troughs is not None else None
+    combined_model_price_mid = np.concatenate([np.exp(mid_model_params[1]) * full_data_after_year.index ** mid_model_params[0], future_model_price_mid]) if mid_model_params[0] is not None else None
     combined_btc_price = pd.concat([full_data_after_year['btc_price'], pd.Series(np.nan, index=future_dates)])
-    print('combined_dates:', combined_dates)    
+    print('combined_dates:', combined_dates)
 
-
-
+    full_dates = combined_dates   
+        
     if ax is None:
         fig, axs = plt.subplots(1, 3, figsize=(15, 8))
     else:
@@ -185,42 +182,42 @@ def get_figure(full_data_after_year, clean_peaks_after_year, clean_troughs_after
     for ax_i in axs:
         ax_i.clear()
 
-    axs[0].plot(combined_dates, combined_btc_price, label=f'{symbol} price')
+    axs[0].plot(full_dates, combined_btc_price, label=f'{symbol} price')
     if peak_prices is not None:
         axs[0].plot(full_data_after_year['date'].iloc[clean_peaks_after_year], peak_prices, "x", color='red')
     if trough_prices is not None:
         axs[0].plot(full_data_after_year['date'].iloc[clean_troughs_after_year], trough_prices, "x", color='green')
     if combined_model_price_peaks is not None:
-        axs[0].plot(combined_dates, combined_model_price_peaks, color='red', label='Peak Model')
+        axs[0].plot(full_dates, combined_model_price_peaks, color='red', label='Peak Model')
     if combined_model_price_troughs is not None:
-        axs[0].plot(combined_dates, combined_model_price_troughs, color='green', label='Trough Model')
+        axs[0].plot(full_dates, combined_model_price_troughs, color='green', label='Trough Model')
     if combined_model_price_mid is not None:
-        axs[0].plot(combined_dates, combined_model_price_mid, color='orange', label='Mid Model')
+        axs[0].plot(full_dates, combined_model_price_mid, color='orange', label='Mid Model')
     axs[0].set_title(f'{symbol} price')
     axs[0].set_xlabel('Date')
     axs[0].set_ylabel('Price')
     axs[0].yaxis.set_major_formatter('${:,.0f}'.format)
     axs[0].legend()
-    axs[0].set_ylim([0, max_y])  # Set max for the first axis
-    axs[0].set_xlim([combined_dates[0], combined_dates[-1]])
+    axs[0].set_ylim([0, max_y])
+    axs[0].set_xlim([min(full_dates), max(full_dates)])
 
-    axs[1].plot(combined_dates, combined_btc_price)
+    axs[1].plot(full_dates, combined_btc_price)
     if peak_prices is not None:
         axs[1].plot(full_data_after_year['date'].iloc[clean_peaks_after_year], peak_prices, "x", color='red')
     if trough_prices is not None:
         axs[1].plot(full_data_after_year['date'].iloc[clean_troughs_after_year], trough_prices, "x", color='green')
     if combined_model_price_peaks is not None:
-        axs[1].plot(combined_dates, combined_model_price_peaks, color='red')
+        axs[1].plot(full_dates, combined_model_price_peaks, color='red')
     if combined_model_price_troughs is not None:
-        axs[1].plot(combined_dates, combined_model_price_troughs, color='green')
+        axs[1].plot(full_dates, combined_model_price_troughs, color='green')
     if combined_model_price_mid is not None:
-        axs[1].plot(combined_dates, combined_model_price_mid, color='orange')
+        axs[1].plot(full_dates, combined_model_price_mid, color='orange')
     axs[1].set_title(f'{symbol} price (log)')
     axs[1].set_xlabel('Date')
     axs[1].set_ylabel('Price')
     axs[1].set_yscale('log')
-    axs[1].set_ylim([min_y, max_y])  # Set log y range
-    axs[1].set_xlim([combined_dates[0], combined_dates[-1]])
+    axs[1].set_ylim([min_y, max_y])
+    axs[1].set_xlim([min(full_dates), max(full_dates)])
 
     axs[2].plot(range(len(combined_dates)), combined_btc_price)
     if peak_prices is not None:
@@ -238,13 +235,9 @@ def get_figure(full_data_after_year, clean_peaks_after_year, clean_troughs_after
     axs[2].set_ylabel('Price')
     axs[2].set_yscale('log')
     axs[2].set_xscale('log')
-    axs[2].set_ylim([min_y, max_y])  # Set log y range
-    max_index = len(combined_dates) - 1
-    axs[2].set_xticks([1, 10, 100, 1000, max_index])
-    axs[2].set_xticklabels([combined_dates[1].year,combined_dates[10].year, combined_dates[100].year, combined_dates[1000].year, combined_dates[max_index].year])
-    axs[2].yaxis.set_major_formatter('${:,.0f}'.format)
+    axs[2].set_ylim([min_y, max_y])
     axs[2].set_xlim([1, len(combined_dates) - 1])
-
+    
     subtitle = f"Current Date: {current_date.strftime('%Y-%m-%d') if current_date else 'N/A'}\n"
     if peak_model_params is not None:
         subtitle += f"Peak Model Params: a={peak_model_params[0]:.4f}, b={peak_model_params[1]:.4f}, R²={r2_peaks:.4f}\n"
@@ -265,6 +258,7 @@ def get_figure(full_data_after_year, clean_peaks_after_year, clean_troughs_after
     plt.subplots_adjust(top=0.8, wspace=0.3)    
 
     return fig, axs
+
 
 
 def load_data(symbol, start_date):
@@ -344,7 +338,7 @@ def animate(i, full_data, min_peak_date, d_days, max_year, axs, min_year_ani, th
 
 
 # min_year_params = 2011
-min_year_ani = None #2015
+min_year_ani = 2015 #2015
 max_year_ani = 2027
 d_days = 365
 
@@ -353,12 +347,12 @@ months_step = 24
 threshold=0.3
 # drop_pct=0.25
 # drop_window=30
-min_y = 1e0
-max_y = 1e3
+min_y = 1e-4
+max_y = 1e6
 max_year = 2035
 yahoo_start_date = None #'2010-01-01'
 min_peak_date = None
-symbol = 'NVDA'
+symbol = 'BTC-USD'
 
 
 full_data = load_data(symbol, yahoo_start_date)
@@ -368,6 +362,9 @@ if min_year_ani is None:
 fig, axs = plt.subplots(1, 3, figsize=(14, 7))
 ani = FuncAnimation(fig, animate, frames=range(0, (max_year_ani-min_year_ani)*12 + 1,months_step), fargs=(full_data, min_peak_date, d_days, max_year, axs, min_year_ani, threshold, min_y, max_y, symbol), interval=200)
 
-ani.save('testing_NVDA_1.gif', writer=PillowWriter(fps=1))
+ani.save('testing_BTC_2.gif', writer=PillowWriter(fps=1))
 
 plt.show()
+# %%
+#full_data_until_now
+full_data
