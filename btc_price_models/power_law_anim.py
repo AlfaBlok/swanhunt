@@ -131,8 +131,9 @@ def get_troughs(full_data, d_days, threshold, min_date):
 
     return troughs, clean_troughs_after_year
 
-def get_frame_plot(full_data, clean_peaks, clean_troughs, peak_model, trough_model, average_model_prices,min_x, max_x, min_y, max_y, symbol, peak_model_params, trough_model_params, average_model_params, peak_r2, trough_r2, current_date=None, alpha=1, transparency = False, ax=None):
+def get_frame_plot(full_data, clean_peaks, clean_troughs, peak_model, trough_model, average_model_prices,min_x, max_x, min_y, max_y, symbol, peak_model_params, trough_model_params, average_model_params, peak_r2, trough_r2, current_date=None, alpha=1, transparency = False, shaded = False, ax=None):
     # fig, axs = plt.subplots(1, 3, figsize=(14, 7.3))
+    print('Here alpha:', alpha)
 
     if ax is None:
         fig, axs = plt.subplots(1, 3, figsize=(14, 7.25))
@@ -160,6 +161,8 @@ def get_frame_plot(full_data, clean_peaks, clean_troughs, peak_model, trough_mod
     axs[0].plot(full_data['date'], peak_model, color='red', label='Model Peaks', alpha=alpha)
     axs[0].plot(full_data['date'], trough_model, color='green', label='Model Troughs', alpha=alpha)
     axs[0].plot(full_data['date'], average_model_prices, color='orange', label='Model Average', alpha=alpha)
+
+
     axs[0].set_title(f'{symbol} price')
     axs[0].set_xlabel('Date')
     axs[0].set_ylabel('Price')
@@ -264,11 +267,295 @@ def get_frame_plot(full_data, clean_peaks, clean_troughs, peak_model, trough_mod
     else:
         subtitle += "Mid Model Params: waiting for peaks and troughs\n"
     
+    if shaded == True:
+        # Adding shaded area between peak_model and trough_model
+        axs[0].fill_between(full_data['date'], peak_model, trough_model, color='yellow', alpha=alpha, label='Power Law Model') 
+        axs[1].fill_between(full_data['date'], peak_model, trough_model, color='yellow', alpha=alpha, label='Power Law Model')
+        axs[2].fill_between(full_data.index, peak_model, trough_model, color='yellow', alpha=alpha, label='Power Law Model')
+
+
+
     fig.suptitle(subtitle)
 
     plt.subplots_adjust(top=0.8, wspace=alpha)    
 
     return fig, axs
+
+
+
+def get_frame_radarplot(full_data, clean_peaks, clean_troughs, peak_model, trough_model, average_model_prices, min_x, max_x, min_y, max_y, symbol, peak_model_params, trough_model_params, average_model_params, peak_r2, trough_r2, current_date=None, alpha=1, transparency=False, shaded=False, ax=None, prediction_2030_peak=None, prediction_2030_trough=None):
+    if ax is None:
+        fig, axs = plt.subplots(2, 3, figsize=(14, 7.25))
+    else:
+        fig, axs = plt.gcf(), ax
+
+    if not transparency:
+        for row in axs:
+            for ax_i in row:
+                ax_i.clear()
+
+    if min_x is not None:
+        min_x = pd.to_datetime(min_x)
+        if min_x < full_data['date'].min():
+            min_x = full_data['date'].min()
+
+    if max_x is not None:
+        max_x = pd.to_datetime(max_x)
+        if max_x > full_data['date'].max():
+            max_x = full_data['date'].max()
+
+    axs[0, 0].plot(full_data['date'], full_data['btc_price'], label='BTC Price', color='blue')
+    axs[0, 0].scatter(full_data['date'][clean_peaks], full_data['btc_price'][clean_peaks], color='red', label='Peaks', alpha=alpha)
+    axs[0, 0].scatter(full_data['date'][clean_troughs], full_data['btc_price'][clean_troughs], color='green', label='Troughs', alpha=alpha)
+    axs[0, 0].plot(full_data['date'], peak_model, color='red', label='Model Peaks', alpha=alpha)
+    axs[0, 0].plot(full_data['date'], trough_model, color='green', label='Model Troughs', alpha=alpha)
+    axs[0, 0].plot(full_data['date'], average_model_prices, color='orange', label='Model Average', alpha=alpha)
+
+    axs[0, 0].set_title(f'{symbol} price')
+    axs[0, 0].set_xlabel('Date')
+    axs[0, 0].set_ylabel('Price')
+    axs[0, 0].set_xlim(min_x, max_x)
+    axs[0, 0].set_ylim([0, max_y])
+    axs[0, 0].yaxis.set_major_formatter('${:,.0f}'.format)
+
+    num_ticks = 5
+    x_ticks = pd.date_range(start=min_x, end=max_x, periods=num_ticks).to_pydatetime()
+    axs[0, 0].set_xticks(x_ticks)
+    axs[0, 0].set_xticklabels([tick.year for tick in x_ticks])
+
+    axs[0, 1].plot(full_data['date'], full_data['btc_price'], label='BTC Price', color='blue')
+    axs[0, 1].scatter(full_data['date'][clean_peaks], full_data['btc_price'][clean_peaks], color='red', label='Peaks', alpha=alpha)
+    axs[0, 1].scatter(full_data['date'][clean_troughs], full_data['btc_price'][clean_troughs], color='green', label='Troughs', alpha=alpha)
+    axs[0, 1].plot(full_data['date'], peak_model, color='red', label='Model Peaks', alpha=alpha)
+    axs[0, 1].plot(full_data['date'], trough_model, color='green', label='Model Troughs', alpha=alpha)
+    axs[0, 1].plot(full_data['date'], average_model_prices, color='orange', label='Model Average', alpha=alpha)
+    axs[0, 1].set_xlim(min_x, max_x)
+    axs[0, 1].set_title(f'{symbol} price (log)')
+    axs[0, 1].set_xlabel('Date')
+    axs[0, 1].set_ylabel('Price')
+    axs[0, 1].set_yscale('log')
+    axs[0, 1].set_ylim([min_y, max_y])
+    axs[0, 1].yaxis.set_major_formatter('${:,.0f}'.format)
+    axs[0, 1].set_xticks(x_ticks)
+    axs[0, 1].set_xticklabels([tick.year for tick in x_ticks])
+
+    axs[0, 2].plot(full_data.index, full_data['btc_price'], label='BTC Price', color='blue')
+    if len(clean_peaks) > 0:
+        axs[0, 2].scatter(full_data.index[clean_peaks], full_data['btc_price'][clean_peaks], color='red', label='Peaks', alpha=alpha)
+    if len(clean_troughs) > 0:
+        axs[0, 2].scatter(full_data.index[clean_troughs], full_data['btc_price'][clean_troughs], color='green', label='Troughs', alpha=alpha)
+    axs[0, 2].plot(full_data.index, peak_model, color='red', label='Model Peaks', alpha=alpha)
+    axs[0, 2].plot(full_data.index, trough_model, color='green', label='Model Troughs', alpha=alpha)
+    axs[0, 2].plot(full_data.index, average_model_prices, color='orange', label='Model Average', alpha=alpha)
+    axs[0, 2].set_title(f'{symbol} price (log-log)')
+    axs[0, 2].set_xlabel('Date')
+    axs[0, 2].set_ylabel('Price')
+    axs[0, 2].set_yscale('log')
+    axs[0, 2].set_xscale('log')
+    axs[0, 2].set_ylim([min_y, max_y])
+    axs[0, 2].yaxis.set_major_formatter('${:,.0f}'.format)
+
+    if min_x is not None:
+        min_x_index = full_data[full_data['date'] >= min_x].index[0]
+    if max_x is not None:
+        max_x_index = full_data[full_data['date'] <= max_x].index[-1]
+        axs[0, 2].set_xlim([min_x_index, max_x_index])
+
+    axs[1, 0].scatter([peak_r2], [prediction_2030_peak], color='red', label='Peaks', alpha=alpha)
+    axs[1, 0].scatter([trough_r2], [prediction_2030_trough], color='green', label='Troughs', alpha=alpha)
+    axs[1, 0].set_title('Radar plot')
+    axs[1, 0].set_xlabel('R²')
+    axs[1, 0].set_ylabel('Price in 2030')
+    axs[1, 0].set_xlim([-1, 1])
+    axs[1, 0].set_ylim([0, max_y])
+    axs[1, 0].yaxis.set_major_formatter('${:,.0f}'.format)
+
+    subtitle = f"{symbol} Current Date: {current_date.strftime('%Y-%m-%d') if current_date else 'N/A'}\n"
+    if peak_model_params is not None:
+        subtitle += f"Peak Model Params: a={peak_model_params[0]:.4f}, b={peak_model_params[1]:.4f}, R²={peak_r2:.4f}\n"
+    else:
+        subtitle += "Peak Model Params: waiting for peaks\n"
+    if trough_model_params is not None:
+        subtitle += f"Trough Model Params: a={trough_model_params[0]:.4f}, b={trough_model_params[1]:.4f}, R²={trough_r2:.4f}\n"
+    else:
+        subtitle += "Trough Model Params: waiting for troughs\n"
+
+    if average_model_params is not None:
+        subtitle += f"Mid Model Params: a={average_model_params[0]:.4f}, b={average_model_params[1]:.4f}\n"
+    else:
+        subtitle += "Mid Model Params: waiting for peaks and troughs\n"
+    
+    if shaded:
+        axs[0, 0].fill_between(full_data['date'], peak_model, trough_model, color='yellow', alpha=alpha, label='Power Law Model') 
+        axs[0, 1].fill_between(full_data['date'], peak_model, trough_model, color='yellow', alpha=alpha, label='Power Law Model')
+        axs[0, 2].fill_between(full_data.index, peak_model, trough_model, color='yellow', alpha=alpha, label='Power Law Model')
+
+    fig.suptitle(subtitle)
+
+    plt.subplots_adjust(top=0.8, wspace=0.3)    
+
+    return fig, axs
+
+
+
+def get_frame_radarplot_old(full_data, clean_peaks, clean_troughs, peak_model, trough_model, average_model_prices,min_x, max_x, min_y, max_y, symbol, peak_model_params, trough_model_params, average_model_params, peak_r2, trough_r2, current_date=None, alpha=1, transparency = False, shaded = False, ax=None, prediction_2030_peak = None, prediction_2030_trough = None):
+    # fig, axs = plt.subplots(1, 3, figsize=(14, 7.3))
+
+    if ax is None:
+        fig, axs = plt.subplots(2, 3, figsize=(14, 7.25))
+    else:
+        fig, axs = plt.gcf(), ax
+
+    if transparency == False:
+        for ax_i in axs:
+            ax_i.clear()
+
+    if min_x is not None:
+        min_x = pd.to_datetime(min_x)
+        if min_x < full_data['date'].min():
+            min_x = full_data['date'].min()
+
+    if max_x is not None:
+        max_x = pd.to_datetime(max_x)
+        if max_x > full_data['date'].max():
+            max_x = full_data['date'].max()
+
+
+    axs[0,0].plot(full_data['date'], full_data['btc_price'], label='BTC Price', color='blue')
+    axs[0,0].scatter(full_data['date'][clean_peaks], full_data['btc_price'][clean_peaks], color='red', label='Peaks', alpha=alpha)
+    axs[0,0].scatter(full_data['date'][clean_troughs], full_data['btc_price'][clean_troughs], color='green', label='Troughs', alpha=alpha)
+    axs[0,0].plot(full_data['date'], peak_model, color='red', label='Model Peaks', alpha=alpha)
+    axs[0,0].plot(full_data['date'], trough_model, color='green', label='Model Troughs', alpha=alpha)
+    axs[0,0].plot(full_data['date'], average_model_prices, color='orange', label='Model Average', alpha=alpha)
+
+
+    axs[0,0].set_title(f'{symbol} price')
+    axs[0,0].set_xlabel('Date')
+    axs[0,0].set_ylabel('Price')
+    # axs[0].legend()
+    # full_data['date'].min() if min_x is None else pd.datatime(min_x)
+    min_x = full_data['date'].min() if min_x is None else min_x
+    max_x = full_data['date'].max() if max_x is None else max_x
+
+    min_x_index = full_data[full_data['date'] >= min_x].index[0]
+    max_x_index = full_data[full_data['date'] <= max_x].index[-1]
+
+        
+    # Calculate x-ticks
+    num_ticks = 5
+    x_ticks = pd.date_range(start=min_x, end=max_x, periods=num_ticks).to_pydatetime()
+    axs[0,0].set_xticks(x_ticks)
+    axs[0,0].set_xticklabels([tick.year for tick in x_ticks])
+
+
+
+    axs[0,0].set_xlim(min_x, max_x)
+    # axs[0].set_ylim(full_data['btc_price'].min(), full_data['btc_price'].max())
+    axs[0,0].set_xlabel('Date')
+    axs[0,0].set_ylabel('Price')
+    axs[0,0].yaxis.set_major_formatter('${:,.0f}'.format)
+    # axs[0].legend()
+    axs[0,0].set_ylim([0, max_y])  
+    
+    # we show only 5 ticks on the x axis
+
+
+    
+    # Log scale
+    axs[0,1].plot(full_data['date'], full_data['btc_price'], label='BTC Price', color='blue')
+    axs[0,1].scatter(full_data['date'][clean_peaks], full_data['btc_price'][clean_peaks], color='red', label='Peaks', alpha=alpha)
+    axs[0,1].scatter(full_data['date'][clean_troughs], full_data['btc_price'][clean_troughs], color='green', label='Troughs', alpha=alpha)
+    axs[0,1].plot(full_data['date'], peak_model, color='red', label='Model Peaks', alpha=alpha)
+    axs[0,1].plot(full_data['date'], trough_model, color='green', label='Model Troughs', alpha=alpha)
+    axs[0,1].plot(full_data['date'], average_model_prices, color='orange', label='Model Average', alpha=alpha)
+    axs[0,1].set_xlim(full_data['date'].min() if min_x is None else min_x, full_data['date'].max() if max_x is None else max_x)
+    # axs[0,1].set_ylim(full_data['btc_price'].min(), full_data['btc_price'].max())
+    axs[0,1].set_title(f'{symbol} price (log)')
+    axs[0,1].set_xlabel('Date')
+    axs[0,1].set_ylabel('Price')
+    axs[0,1].set_yscale('log')
+    axs[0,1].set_ylim([min_y, max_y])  # Set log y range
+    axs[0,1].yaxis.set_major_formatter('${:,.0f}'.format)
+    axs[0,1].set_xticks(x_ticks)
+    axs[0,1].set_xticklabels([tick.year for tick in x_ticks])
+
+    # # Log-log scale
+    axs[0,2].plot(full_data.index, full_data['btc_price'], label='BTC Price', color='blue')
+    if len(clean_peaks) > 0:
+        axs[0,2].scatter(full_data.index[clean_peaks], full_data['btc_price'][clean_peaks], color='red', label='Peaks', alpha=alpha)
+    if len(clean_troughs) > 0:
+        axs[0,2].scatter(full_data.index[clean_troughs], full_data['btc_price'][clean_troughs], color='green', label='Troughs', alpha=alpha)
+    axs[0,2].plot(full_data.index, peak_model, color='red', label='Model Peaks', alpha=alpha)
+    axs[0,2].plot(full_data.index, trough_model, color='green', label='Model Troughs', alpha=alpha)
+    axs[0,2].plot(full_data.index, average_model_prices, color='orange', label='Model Average', alpha=alpha)
+    axs[0,2].set_title(f'{symbol} price (log-log)')
+    axs[0,2].set_xlabel('Date')
+    axs[0,2].set_ylabel('Price')
+    axs[0,2].set_yscale('log')
+    axs[0,2].set_xscale('log')
+    if max_x is None:
+        max_index = len(full_data) - 1
+    else:
+        max_index = full_data[full_data['date'] <= max_x].index[-1]
+    if max_index < 1000:
+        axs[0,2].set_xticks([1, 10, 100, 1000])
+    else:
+        axs[0,2].set_xticks([1, 10, 100, 1000, max_index])
+    axs[0,2].set_xticklabels([full_data['date'][1].year, full_data['date'][10].year, full_data['date'][100].year, full_data['date'][1000].year, full_data['date'][max_index].year])
+    # we get 
+    
+    # axs[0,2].set_xticks(x_ticks)
+    # axs[0,2].set_xticklabels([tick.year for tick in x_ticks])
+
+
+    axs[0,2].yaxis.set_major_formatter('${:,.0f}'.format)
+    axs[0,2].set_ylim([min_y, max_y])
+    if min_x is not None:
+        # we look for the index of the min_x date
+        min_x_index = full_data[full_data['date'] >= min_x].index[0]
+        axs[0,2].set_xlim([min_x_index, max_index])  # Set min for the third axis
+
+
+    # Radar plot
+    # we want a scatter plot with the prediction for 2030 on y axis and r2 on x axis
+    axs[1][0].scatter([peak_r2], [prediction_2030_peak], color='red', label='Peaks', alpha=alpha)
+    axs[1][0].scatter([trough_r2], [prediction_2030_trough], color='green', label='Troughs', alpha=alpha)
+    axs[1][0].set_title('Radar plot')
+    axs[1][0].set_xlabel('R²')
+    axs[1][0].set_ylabel('Price in 2030')
+    axs[1][0].set_xlim([-1, 1])
+    # axs[1][0].set_ylim([0, max_y])
+
+
+    subtitle = f"{symbol} Current Date: {current_date.strftime('%Y-%m-%d') if current_date else 'N/A'}\n"
+    if peak_model_params is not None:
+        subtitle += f"Peak Model Params: a={peak_model_params[0]:.4f}, b={peak_model_params[1]:.4f}, R²={peak_r2:.4f}\n"
+    else:
+        subtitle += "Peak Model Params: waiting for peaks\n"
+    if trough_model_params is not None:
+        subtitle += f"Trough Model Params: a={trough_model_params[0]:.4f}, b={trough_model_params[1]:.4f}, R²={trough_r2:.4f}\n"
+    else:
+        subtitle += "Trough Model Params: waiting for troughs\n"
+
+    if average_model_params is not None:
+        subtitle += f"Mid Model Params: a={average_model_params[0]:.4f}, b={average_model_params[1]:.4f}\n"
+    else:
+        subtitle += "Mid Model Params: waiting for peaks and troughs\n"
+    
+    if shaded == True:
+        # Adding shaded area between peak_model and trough_model
+        axs[0,0].fill_between(full_data['date'], peak_model, trough_model, color='yellow', alpha=alpha, label='Power Law Model') 
+        axs[0,1].fill_between(full_data['date'], peak_model, trough_model, color='yellow', alpha=alpha, label='Power Law Model')
+        axs[0,2].fill_between(full_data.index, peak_model, trough_model, color='yellow', alpha=alpha, label='Power Law Model')
+
+
+
+    fig.suptitle(subtitle)
+
+    plt.subplots_adjust(top=0.8, wspace=alpha)    
+
+    return fig, axs
+
 
 def get_power_law_model(full_data, samples, text):
     historical_index = full_data.index
@@ -296,7 +583,14 @@ def get_power_law_model(full_data, samples, text):
     r_squared = 1 - (ss_res / ss_tot)
     print(f'{text} R2 = ', r_squared)
 
-    return model_price, model_params, r_squared
+    # Calculate the price in 2030
+    # we get the index for closest to 1st January 2030
+    index_2030 = full_data[full_data['date'] <= '2030-01-01'].index[-1]
+
+    prediction_2030 = np.exp(model_params[1]) * (full_data.index[index_2030])**model_params[0]
+    print(f'{text} 2030 prediction = ', prediction_2030)
+
+    return model_price, model_params, r_squared, prediction_2030
 
 def extend_data(full_data,final_year_model_prediction = 2040):
     final_date = pd.to_datetime(f'01-01-{final_year_model_prediction}')
@@ -309,7 +603,7 @@ def extend_data(full_data,final_year_model_prediction = 2040):
     # full_data = full_data.reset_index(drop=False, inplace=True)
     return full_data
 
-def animate(i, full_data, d_days, threshold, d_days2,min_x, max_x,min_y, max_y, symbol, min_date_model, min_year_ani,axs, alpha, transparency):
+def animate(i, full_data, d_days, threshold, d_days2,min_x, max_x,min_y, max_y, symbol, min_date_model, min_year_ani,axs, alpha, transparency, shaded = False, radar = False):
     current_date = pd.Timestamp(f'{min_year_ani}-01-01') + pd.DateOffset(months=i)
     temp_data = full_data.copy()
     # print(temp_data['date'])
@@ -317,12 +611,16 @@ def animate(i, full_data, d_days, threshold, d_days2,min_x, max_x,min_y, max_y, 
     temp_data.loc[temp_data['date'] > current_date, 'btc_price'] = np.nan
     peaks, clean_peaks = get_peaks(temp_data, d_days, threshold, d_days2, min_date_model)
     troughs, clean_troughs = get_troughs(temp_data, d_days, threshold, min_date_model)
-    peak_model_prices, peak_model_params, peak_r2 = get_power_law_model(temp_data, clean_peaks, 'Peak Model')
-    trough_model_prices, trough_model_params, trough_r2 = get_power_law_model(temp_data, clean_troughs, 'Trough Model')
+    peak_model_prices, peak_model_params, peak_r2, peak_prediction_2030 = get_power_law_model(temp_data, clean_peaks, 'Peak Model')
+    trough_model_prices, trough_model_params, trough_r2, trough_prediction_2030 = get_power_law_model(temp_data, clean_troughs, 'Trough Model')
     average_model_params = (peak_model_params + trough_model_params) / 2 if peak_model_params is not None and trough_model_params is not None else None
     average_model_prices = np.exp(average_model_params[1]) * full_data.index**average_model_params[0] if average_model_params is not None else [None] * len(full_data)
+    print('Alpha:', alpha)
+    if radar == True:
+        axs = get_frame_radarplot(temp_data, clean_peaks, clean_troughs, peak_model_prices, trough_model_prices, average_model_prices, min_x, max_x, min_y, max_y, symbol, peak_model_params, trough_model_params, average_model_params, peak_r2, trough_r2, current_date, alpha, transparency, shaded, ax=axs, prediction_2030_peak = peak_prediction_2030, prediction_2030_trough = trough_prediction_2030)
+    else:
+        axs = get_frame_plot(temp_data, clean_peaks, clean_troughs, peak_model_prices, trough_model_prices, average_model_prices, min_x, max_x, min_y, max_y, symbol, peak_model_params, trough_model_params, average_model_params, peak_r2, trough_r2, current_date, alpha, transparency, shaded, ax=axs)
 
-    axs = get_frame_plot(temp_data, clean_peaks, clean_troughs, peak_model_prices, trough_model_prices, average_model_prices, min_x, max_x, min_y, max_y, symbol, peak_model_params, trough_model_params, average_model_params, peak_r2, trough_r2, current_date, alpha, transparency, ax=axs)
     return axs
 
 
@@ -348,15 +646,22 @@ max_x = '2030-01-01'
 current_date = full_data['date'].max()
    
 
+transparency = False
+alpha = 1
+shaded = False
+
 peaks, clean_peaks = get_peaks(full_data, d_days, threshold, d_days2, min_date_model)
 troughs, clean_troughs = get_troughs(full_data, d_days, threshold, min_date_model)
-peak_model_prices, peak_model_params, peak_r2 = get_power_law_model(full_data, clean_peaks, 'Peak Model')
-trough_model_prices, trough_model_params, trough_r2 = get_power_law_model(full_data, clean_troughs, 'Trough Model')
+peak_model_prices, peak_model_params, peak_r2, prediction_2030_peak = get_power_law_model(full_data, clean_peaks, 'Peak Model')
+trough_model_prices, trough_model_params, trough_r2, prediction_2030_trough = get_power_law_model(full_data, clean_troughs, 'Trough Model')
 average_model_params = (peak_model_params + trough_model_params) / 2
 average_model_prices = np.exp(average_model_params[1]) * full_data.index**average_model_params[0]
 
 fig, ax = get_frame_plot(full_data, clean_peaks, clean_troughs, peak_model_prices, trough_model_prices, average_model_prices, min_x, max_x, min_y, max_y, symbol, peak_model_params, trough_model_params, average_model_params, peak_r2, trough_r2, current_date)
+
+
 plt.show()
+
 
 
 symbol = 'BTC-USD'
@@ -371,8 +676,8 @@ full_data = full_data.drop_duplicates('date')
 full_data = full_data[['date', 'btc_price']]
 full_data = extend_data(full_data, final_year_model_prediction) if final_year_model_prediction else full_data
 
-min_y = 1e-4
-max_y = 1e6
+min_y = 5e-4
+max_y = 6e5
 
 min_date_model = '2010-01-01'
 min_x = '2009-09-01'
@@ -384,9 +689,12 @@ months_step = 60
 
 transparency = False
 alpha = 1
+shaded = False
+radar = False
 
 fig, axs = plt.subplots(1, 3, figsize=(14, 7))
-f_args = (full_data, d_days, threshold, d_days2, min_x, max_x, min_y, max_y, symbol, min_date_model, min_year_ani,axs, alpha, transparency)
+f_args = (full_data, d_days, threshold, d_days2, min_x, max_x, min_y, max_y, symbol, min_date_model, min_year_ani,axs, alpha, transparency, shaded, radar)
+
 
 ani = FuncAnimation(fig, animate, frames=range(0, (max_year_ani-min_year_ani)*12 + 1,months_step), fargs=f_args, interval=200)
 
@@ -402,7 +710,7 @@ historical_data = load_data(symbol)
 final_year_model_prediction = 2030
 d_days = 365
 d_days2 = 365
-threshold = 0.35
+threshold = 0.3
 full_data = historical_data.copy()
 full_data = full_data.drop_duplicates('date')
 full_data = full_data[['date', 'btc_price']]
@@ -431,3 +739,309 @@ ani.save('new_flow_TEST.gif', writer=PillowWriter(fps=2))
 
 plt.show()
 
+
+# %%
+
+
+symbol = 'MSFT'
+historical_data = load_data(symbol)
+
+final_year_model_prediction = 2030
+d_days = 60
+d_days2 = 50
+threshold = 0.1
+full_data = historical_data.copy()
+full_data = full_data.drop_duplicates('date')
+full_data = full_data[['date', 'btc_price']]
+full_data = extend_data(full_data, final_year_model_prediction) if final_year_model_prediction else full_data
+
+min_y = 1e1
+max_y = 1e3
+
+min_date_model = '2005-01-01'
+min_x = '2000-01-01'
+max_x = '2030-01-01'
+min_year_ani = 1995
+max_year_ani = 2040
+
+months_step = 60
+
+transparency = False
+alpha = 1
+
+fig, axs = plt.subplots(1, 3, figsize=(14, 7))
+f_args = (full_data, d_days, threshold, d_days2, min_x, max_x, min_y, max_y, symbol, min_date_model, min_year_ani,axs, alpha, transparency)
+
+ani = FuncAnimation(fig, animate, frames=range(0, (max_year_ani-min_year_ani)*12 + 1,months_step), fargs=f_args, interval=200)
+
+ani.save('new_flow_TEST.gif', writer=PillowWriter(fps=2))
+
+plt.show()
+
+# %%
+
+symbol = 'SPY'
+historical_data = load_data(symbol)
+
+final_year_model_prediction = 2030
+d_days = 200
+d_days2 = 200
+threshold = 0.2
+full_data = historical_data.copy()
+full_data = full_data.drop_duplicates('date')
+full_data = full_data[['date', 'btc_price']]
+full_data = extend_data(full_data, final_year_model_prediction) if final_year_model_prediction else full_data
+
+min_y = 1e2
+max_y = 1e4
+
+min_date_model = '2000-01-01'
+min_x = '1990-01-01'
+max_x = '2030-01-01'
+min_year_ani = 1995
+max_year_ani = 2040
+
+months_step = 60
+
+transparency = False
+alpha = 1
+
+fig, axs = plt.subplots(1, 3, figsize=(14, 7))
+f_args = (full_data, d_days, threshold, d_days2, min_x, max_x, min_y, max_y, symbol, min_date_model, min_year_ani,axs, alpha, transparency)
+
+ani = FuncAnimation(fig, animate, frames=range(0, (max_year_ani-min_year_ani)*12 + 1,months_step), fargs=f_args, interval=200)
+
+ani.save('new_flow_TEST.gif', writer=PillowWriter(fps=2))
+
+plt.show()
+
+# %%
+
+
+symbol = 'SPY'
+historical_data = load_data(symbol)
+
+final_year_model_prediction = 2030
+d_days = 200
+d_days2 = 300
+threshold = 0.2
+full_data = historical_data.copy()
+full_data = full_data.drop_duplicates('date')
+full_data = full_data[['date', 'btc_price']]
+full_data = extend_data(full_data, final_year_model_prediction) if final_year_model_prediction else full_data
+
+min_y = 1e2
+max_y = 1e4
+
+min_date_model = '2006-01-01'
+min_x = '2000-01-01'
+max_x = '2030-01-01'
+min_year_ani = 2000
+max_year_ani = 2040
+
+months_step = 60
+
+transparency = False
+alpha = 1
+
+fig, axs = plt.subplots(1, 3, figsize=(14, 7))
+f_args = (full_data, d_days, threshold, d_days2, min_x, max_x, min_y, max_y, symbol, min_date_model, min_year_ani,axs, alpha, transparency)
+
+ani = FuncAnimation(fig, animate, frames=range(0, (max_year_ani-min_year_ani)*12 + 1,months_step), fargs=f_args, interval=200)
+
+ani.save('new_flow_TEST.gif', writer=PillowWriter(fps=2))
+
+plt.show()
+
+# %%
+
+symbol = 'META'
+historical_data = load_data(symbol)
+
+final_year_model_prediction = 2030
+d_days = 180
+d_days2 = 180
+threshold = 0.35
+full_data = historical_data.copy()
+full_data = full_data.drop_duplicates('date')
+full_data = full_data[['date', 'btc_price']]
+full_data = extend_data(full_data, final_year_model_prediction) if final_year_model_prediction else full_data
+
+min_y = 1e1
+max_y = 1e3
+
+min_date_model = '2015-01-01'
+min_x = '2010-01-01'
+max_x = '2030-01-01'
+min_year_ani = 2000
+max_year_ani = 2040
+
+months_step = 60
+
+transparency = False
+alpha = 1
+
+fig, axs = plt.subplots(1, 3, figsize=(14, 7))
+f_args = (full_data, d_days, threshold, d_days2, min_x, max_x, min_y, max_y, symbol, min_date_model, min_year_ani,axs, alpha, transparency)
+
+ani = FuncAnimation(fig, animate, frames=range(0, (max_year_ani-min_year_ani)*12 + 1,months_step), fargs=f_args, interval=200)
+
+ani.save('new_flow_TEST.gif', writer=PillowWriter(fps=2))
+
+plt.show()
+
+
+# %%
+
+symbol = 'BTC-USD'
+historical_data = load_data(symbol)
+
+final_year_model_prediction = 2030
+d_days = 365
+d_days2 = 365
+threshold = 0.5
+full_data = historical_data.copy()
+full_data = full_data.drop_duplicates('date')
+full_data = full_data[['date', 'btc_price']]
+full_data = extend_data(full_data, final_year_model_prediction) if final_year_model_prediction else full_data
+
+min_y = 5e-4
+max_y = 6e5
+
+min_date_model = '2010-01-01'
+min_x = '2009-09-01'
+max_x = '2030-01-01'
+min_year_ani = 2015
+max_year_ani = 2030
+
+months_step = 60
+
+transparency = False
+alpha = 1
+
+fig, axs = plt.subplots(1, 3, figsize=(14, 7))
+f_args = (full_data, d_days, threshold, d_days2, min_x, max_x, min_y, max_y, symbol, min_date_model, min_year_ani,axs, alpha, transparency)
+
+ani = FuncAnimation(fig, animate, frames=range(0, (max_year_ani-min_year_ani)*12 + 1,months_step), fargs=f_args, interval=200)
+
+ani.save('new_flow_TEST.gif', writer=PillowWriter(fps=2))
+
+plt.show()
+
+# %%
+# WHY TRY TO DO shaded between the two models
+
+symbol = 'BTC-USD'
+historical_data = load_data(symbol)
+
+final_year_model_prediction = 2030
+d_days = 365
+d_days2 = 365
+threshold = 0.5
+full_data = historical_data.copy()
+full_data = full_data.drop_duplicates('date')
+full_data = full_data[['date', 'btc_price']]
+full_data = extend_data(full_data, final_year_model_prediction) if final_year_model_prediction else full_data
+
+min_y = 5e-4
+max_y = 6e5
+
+min_date_model = '2010-01-01'
+min_x = '2009-09-01'
+max_x = '2030-01-01'
+min_year_ani = 2015
+max_year_ani = 2030
+
+months_step = 30
+
+transparency = False
+alpha = 0.2
+shaded = True
+
+fig, axs = plt.subplots(1, 3, figsize=(14, 7))
+f_args = (full_data, d_days, threshold, d_days2, min_x, max_x, min_y, max_y, symbol, min_date_model, min_year_ani,axs, alpha, transparency, shaded)
+
+ani = FuncAnimation(fig, animate, frames=range(0, (max_year_ani-min_year_ani)*12 + 1,months_step), fargs=f_args, interval=200)
+
+ani.save('new_flow_TEST.gif', writer=PillowWriter(fps=2))
+
+plt.show()
+
+# %%
+# WHY TRY TO DO shaded between the two models
+
+symbol = 'BTC-USD'
+historical_data = load_data(symbol)
+
+final_year_model_prediction = 2030
+d_days = 365
+d_days2 = 365
+threshold = 0.5
+full_data = historical_data.copy()
+full_data = full_data.drop_duplicates('date')
+full_data = full_data[['date', 'btc_price']]
+full_data = extend_data(full_data, final_year_model_prediction) if final_year_model_prediction else full_data
+
+min_y = 5e-4
+max_y = 6e5
+
+min_date_model = '2010-01-01'
+min_x = '2009-09-01'
+max_x = '2030-01-01'
+min_year_ani = 2015
+max_year_ani = 2030
+
+months_step = 5
+
+transparency = True
+alpha = 0.03
+shaded = True
+
+fig, axs = plt.subplots(1, 3, figsize=(14, 7))
+f_args = (full_data, d_days, threshold, d_days2, min_x, max_x, min_y, max_y, symbol, min_date_model, min_year_ani,axs, alpha, transparency, shaded)
+
+ani = FuncAnimation(fig, animate, frames=range(0, (max_year_ani-min_year_ani)*12 + 1,months_step), fargs=f_args, interval=200)
+
+ani.save('new_flow_TEST.gif', writer=PillowWriter(fps=2))
+
+plt.show()
+
+# %%
+
+
+symbol = 'BTC-USD'
+historical_data = load_data(symbol)
+
+final_year_model_prediction = 2030
+d_days = 365
+d_days2 = 365
+threshold = 0.5
+full_data = historical_data.copy()
+full_data = full_data.drop_duplicates('date')
+full_data = full_data[['date', 'btc_price']]
+full_data = extend_data(full_data, final_year_model_prediction) if final_year_model_prediction else full_data
+
+min_y = 5e-4
+max_y = 6e5
+
+min_date_model = '2010-01-01'
+min_x = '2009-09-01'
+max_x = '2030-01-01'
+min_year_ani = 2015
+max_year_ani = 2030
+
+months_step = 60
+
+transparency = True
+alpha = 0.03
+shaded = True
+radar = True
+
+fig, axs = plt.subplots(1 if radar == False else 2, 3, figsize=(14, 7))
+f_args = (full_data, d_days, threshold, d_days2, min_x, max_x, min_y, max_y, symbol, min_date_model, min_year_ani,axs, alpha, transparency, shaded, radar)
+
+ani = FuncAnimation(fig, animate, frames=range(0, (max_year_ani-min_year_ani)*12 + 1,months_step), fargs=f_args, interval=200)
+
+ani.save('4d_flow_TEST.gif', writer=PillowWriter(fps=2))
+
+plt.show()
