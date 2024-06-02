@@ -281,11 +281,9 @@ def get_frame_plot(full_data, clean_peaks, clean_troughs, peak_model, trough_mod
 
     return fig, axs
 
-
-
 def get_frame_radarplot(full_data, clean_peaks, clean_troughs, peak_model, trough_model, average_model_prices, min_x, max_x, min_y, max_y, symbol, peak_model_params, trough_model_params, average_model_params, peak_r2, trough_r2, current_date=None, alpha=1, transparency=False, shaded=False, ax=None, prediction_2030_peak=None, prediction_2030_trough=None):
     if ax is None:
-        fig, axs = plt.subplots(2, 3, figsize=(14, 7.25))
+        fig, axs = plt.subplots(2, 3, figsize=(16, 9))
     else:
         fig, axs = plt.gcf(), ax
 
@@ -392,17 +390,15 @@ def get_frame_radarplot(full_data, clean_peaks, clean_troughs, peak_model, troug
 
     fig.suptitle(subtitle)
 
-    plt.subplots_adjust(top=0.8, wspace=0.3)    
+    plt.subplots_adjust(top=0.83, wspace=0.3)    
 
     return fig, axs
-
-
 
 def get_frame_radarplot_old(full_data, clean_peaks, clean_troughs, peak_model, trough_model, average_model_prices,min_x, max_x, min_y, max_y, symbol, peak_model_params, trough_model_params, average_model_params, peak_r2, trough_r2, current_date=None, alpha=1, transparency = False, shaded = False, ax=None, prediction_2030_peak = None, prediction_2030_trough = None):
     # fig, axs = plt.subplots(1, 3, figsize=(14, 7.3))
 
     if ax is None:
-        fig, axs = plt.subplots(2, 3, figsize=(14, 7.25))
+        fig, axs = plt.subplots(2, 3, figsize=(16, 9))
     else:
         fig, axs = plt.gcf(), ax
 
@@ -556,12 +552,11 @@ def get_frame_radarplot_old(full_data, clean_peaks, clean_troughs, peak_model, t
 
     return fig, axs
 
-
 def get_power_law_model(full_data, samples, text):
     historical_index = full_data.index
     if len(samples) < 2:
         model_price = [None] * len(historical_index)
-        return model_price, None, None
+        return model_price, None, None, None
     
     
     samples_index = full_data.index[samples]
@@ -622,7 +617,6 @@ def animate(i, full_data, d_days, threshold, d_days2,min_x, max_x,min_y, max_y, 
         axs = get_frame_plot(temp_data, clean_peaks, clean_troughs, peak_model_prices, trough_model_prices, average_model_prices, min_x, max_x, min_y, max_y, symbol, peak_model_params, trough_model_params, average_model_params, peak_r2, trough_r2, current_date, alpha, transparency, shaded, ax=axs)
 
     return axs
-
 
 
 
@@ -720,15 +714,15 @@ min_y = 1e0
 max_y = 3e2
 
 min_date_model = '2006-01-01'
-min_x = '2004-01-01'
+min_x = '2004-09-01'
 max_x = '2030-01-01'
 min_year_ani = 2010
-max_year_ani = 2035
+max_year_ani = 2030
 
-months_step = 48
+months_step = 12
 
-transparency = False
-alpha = 1
+transparency = True
+alpha = 0.15
 
 fig, axs = plt.subplots(1, 3, figsize=(14, 7))
 f_args = (full_data, d_days, threshold, d_days2, min_x, max_x, min_y, max_y, symbol, min_date_model, min_year_ani,axs, alpha, transparency)
@@ -822,7 +816,7 @@ symbol = 'SPY'
 historical_data = load_data(symbol)
 
 final_year_model_prediction = 2030
-d_days = 200
+d_days = 900
 d_days2 = 300
 threshold = 0.2
 full_data = historical_data.copy()
@@ -833,16 +827,16 @@ full_data = extend_data(full_data, final_year_model_prediction) if final_year_mo
 min_y = 1e2
 max_y = 1e4
 
-min_date_model = '2006-01-01'
-min_x = '2000-01-01'
+min_date_model = '2005-01-01'
+min_x = '1994-01-01'
 max_x = '2030-01-01'
-min_year_ani = 2000
+min_year_ani = 1994
 max_year_ani = 2040
 
-months_step = 60
+months_step = 24
 
-transparency = False
-alpha = 1
+transparency = True
+alpha = 0.2
 
 fig, axs = plt.subplots(1, 3, figsize=(14, 7))
 f_args = (full_data, d_days, threshold, d_days2, min_x, max_x, min_y, max_y, symbol, min_date_model, min_year_ani,axs, alpha, transparency)
@@ -859,7 +853,7 @@ symbol = 'META'
 historical_data = load_data(symbol)
 
 final_year_model_prediction = 2030
-d_days = 180
+d_days = 100
 d_days2 = 180
 threshold = 0.35
 full_data = historical_data.copy()
@@ -871,15 +865,15 @@ min_y = 1e1
 max_y = 1e3
 
 min_date_model = '2015-01-01'
-min_x = '2010-01-01'
+min_x = '2013-01-01'
 max_x = '2030-01-01'
 min_year_ani = 2000
 max_year_ani = 2040
 
-months_step = 60
+months_step = 12
 
-transparency = False
-alpha = 1
+transparency = True
+alpha = 0.3
 
 fig, axs = plt.subplots(1, 3, figsize=(14, 7))
 f_args = (full_data, d_days, threshold, d_days2, min_x, max_x, min_y, max_y, symbol, min_date_model, min_year_ani,axs, alpha, transparency)
@@ -911,13 +905,13 @@ max_y = 6e5
 min_date_model = '2010-01-01'
 min_x = '2009-09-01'
 max_x = '2030-01-01'
-min_year_ani = 2015
+min_year_ani = 2010
 max_year_ani = 2030
 
-months_step = 60
+months_step = 12
 
-transparency = False
-alpha = 1
+transparency = True
+alpha = 0.1
 
 fig, axs = plt.subplots(1, 3, figsize=(14, 7))
 f_args = (full_data, d_days, threshold, d_days2, min_x, max_x, min_y, max_y, symbol, min_date_model, min_year_ani,axs, alpha, transparency)
@@ -1030,10 +1024,10 @@ max_x = '2030-01-01'
 min_year_ani = 2015
 max_year_ani = 2030
 
-months_step = 60
+months_step = 12
 
 transparency = True
-alpha = 0.03
+alpha = 0.1
 shaded = True
 radar = True
 
