@@ -12,6 +12,7 @@ def get_historical_data(symbol, start):
     data = yf.download(symbol, start=start)
     data.reset_index(drop=False, inplace=True)
     data['Date'] = pd.to_datetime(data['Date'])
+    st.dataframe(data)
     return data
 
 # Title of the app
@@ -32,6 +33,10 @@ log_data = np.log(historical_data['Close'])
 # Sliders for distance and prominence
 distance = sidebar.slider('Distance', 10, 1000, 100)
 prominence = sidebar.slider('Prominence', 0.1, 1.0, 0.2)
+
+st.write('Min date loaded: ', historical_data['Date'].min())
+st.write('Max date loaded: ', historical_data['Date'].max())
+st.dataframe(log_data)
 
 # Find peaks and troughs
 peaks = find_peaks(log_data, distance=distance, prominence=prominence)[0]
