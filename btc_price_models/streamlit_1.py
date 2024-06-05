@@ -175,7 +175,7 @@ def get_frame_plot(full_data, clean_peaks, clean_troughs, peak_model, trough_mod
 
 
     axs[0].set_title(f'{symbol} price')
-    axs[0].set_xlabel('Date')
+    # axs[0].set_xlabel('Date')
     axs[0].set_ylabel('Price')
     # axs[0].legend()
     # full_data['date'].min() if min_x is None else pd.datatime(min_x)
@@ -196,7 +196,7 @@ def get_frame_plot(full_data, clean_peaks, clean_troughs, peak_model, trough_mod
 
     axs[0].set_xlim(min_x, max_x)
     # axs[0].set_ylim(full_data['close_price'].min(), full_data['close_price'].max())
-    axs[0].set_xlabel('Date')
+    # axs[0].set_xlabel('Date')
     axs[0].set_ylabel('Price')
     axs[0].yaxis.set_major_formatter('${:,.0f}'.format)
     # axs[0].legend()
@@ -216,7 +216,7 @@ def get_frame_plot(full_data, clean_peaks, clean_troughs, peak_model, trough_mod
     axs[1].set_xlim(full_data['date'].min() if min_x is None else min_x, full_data['date'].max() if max_x is None else max_x)
     # axs[1].set_ylim(full_data['close_price'].min(), full_data['close_price'].max())
     axs[1].set_title(f'{symbol} price (log)')
-    axs[1].set_xlabel('Date')
+    # axs[1].set_xlabel('Date')
     axs[1].set_ylabel('Price')
     axs[1].set_yscale('log')
     axs[1].set_ylim([min_y, max_y])  # Set log y range
@@ -234,7 +234,7 @@ def get_frame_plot(full_data, clean_peaks, clean_troughs, peak_model, trough_mod
     axs[2].plot(full_data.index, trough_model, color='green', label='Model Troughs', alpha=alpha)
     axs[2].plot(full_data.index, average_model_prices, color='orange', label='Model Average', alpha=alpha)
     axs[2].set_title(f'{symbol} price (log-log)')
-    axs[2].set_xlabel('Date')
+    # axs[2].set_xlabel('Date')
     axs[2].set_ylabel('Price')
     axs[2].set_yscale('log')
     axs[2].set_xscale('log')
@@ -322,7 +322,7 @@ def get_frame_radarplot(full_data, clean_peaks, clean_troughs, peak_model, troug
     axs[0, 0].plot(full_data['date'], average_model_prices, color='orange', label='Model Average', alpha=alpha)
 
     axs[0, 0].set_title(f'{symbol} price')
-    axs[0, 0].set_xlabel('Date')
+    # axs[0, 0].set_xlabel('Date')
     axs[0, 0].set_ylabel('Price')
     axs[0, 0].set_xlim(min_x, max_x)
     axs[0, 0].set_ylim([0, max_y])
@@ -341,7 +341,7 @@ def get_frame_radarplot(full_data, clean_peaks, clean_troughs, peak_model, troug
     axs[0, 1].plot(full_data['date'], average_model_prices, color='orange', label='Model Average', alpha=alpha)
     axs[0, 1].set_xlim(min_x, max_x)
     axs[0, 1].set_title(f'{symbol} price (log)')
-    axs[0, 1].set_xlabel('Date')
+    # axs[0, 1].set_xlabel('Date')
     axs[0, 1].set_ylabel('Price')
     axs[0, 1].set_yscale('log')
     axs[0, 1].set_ylim([min_y, max_y])
@@ -358,7 +358,7 @@ def get_frame_radarplot(full_data, clean_peaks, clean_troughs, peak_model, troug
     axs[0, 2].plot(full_data.index, trough_model, color='green', label='Model Troughs', alpha=alpha)
     axs[0, 2].plot(full_data.index, average_model_prices, color='orange', label='Model Average', alpha=alpha)
     axs[0, 2].set_title(f'{symbol} price (log-log)')
-    axs[0, 2].set_xlabel('Date')
+    # axs[0, 2].set_xlabel('Date')
     axs[0, 2].set_ylabel('Price')
     axs[0, 2].set_yscale('log')
     axs[0, 2].set_xscale('log')
@@ -371,6 +371,12 @@ def get_frame_radarplot(full_data, clean_peaks, clean_troughs, peak_model, troug
         max_x_index = full_data[full_data['date'] <= max_x].index[-1]
         axs[0, 2].set_xlim([min_x_index, max_x_index])
 
+    # we label the x axis with the year of the date
+    if max_x_index < 1000:
+        axs[0, 2].set_xticks([1, 10, 100, 1000])
+    else:
+        axs[0, 2].set_xticks([1, 10, 100, 1000, max_x_index])
+    axs[0, 2].set_xticklabels([full_data['date'][1].year, full_data['date'][10].year, full_data['date'][100].year, full_data['date'][1000].year, full_data['date'][max_x_index].year])
 
     # Radar plot
     if average_model_prices is not None:
@@ -398,7 +404,8 @@ def get_frame_radarplot(full_data, clean_peaks, clean_troughs, peak_model, troug
     axs[1, 0].set_xlabel('R²')
     axs[1, 0].set_ylabel('Price in 2030')
     axs[1, 0].set_xlim([-1, 1.1])
-    axs[1, 0].set_ylim([0, max_y])
+    max_y_2030 = max_2030_peak*1.1
+    axs[1, 0].set_ylim([0, max_y_2030])
     axs[1, 0].yaxis.set_major_formatter('${:,.0f}'.format)
 
     # we create an array that is null for every date except for current_date, and in that date we put the 2030 prediction
@@ -456,7 +463,7 @@ def get_frame_radarplot(full_data, clean_peaks, clean_troughs, peak_model, troug
     axs[1, 1].scatter(full_data['date'], mid_price_predictions, color='orange', label='2030 Prediction', alpha=1)
 
     axs[1, 1].set_title('2030 Prediction')
-    axs[1, 1].set_xlabel('Date')
+    # axs[1, 1].set_xlabel('Date')
     axs[1, 1].set_ylabel('Price in 2030')
     axs[1, 1].set_xlim(min_x, max_x)    
     max_y_2030 = max_2030_peak*1.1
@@ -470,7 +477,7 @@ def get_frame_radarplot(full_data, clean_peaks, clean_troughs, peak_model, troug
     axs[1, 2].scatter(full_data['date'], mid_price_predictions_2040, color='orange', label='2040 Prediction', alpha=1)
 
     axs[1, 2].set_title('2040 Prediction')
-    axs[1, 2].set_xlabel('Date')
+    # axs[1, 2].set_xlabel('Date')
     axs[1, 2].set_ylabel('Price in 2040')
     axs[1, 2].set_xlim(min_x, max_x)
     
@@ -700,7 +707,7 @@ min_year_ani = sidebar.slider('Min Year Animation', 1995, 2025, 2020)
 max_year_ani = sidebar.slider('Max Year Animation', 2025, 2050, 2030)
 
 if st.button('Animate'):
-    fig, axs = plt.subplots(1 if style == 'Simple' else 2, 3, figsize=(14, 8))
+    fig, axs = plt.subplots(1 if style == 'Simple' else 2, 3, figsize=(14, 9))
     f_args = (full_data, distance, prominence, divisions, min_x, max_x, min_y, max_y, symbol, min_date_model_index, min_year_ani,axs, alpha, transparency, shaded, style, prediction_2030_peak,prediction_2040_peak)
     ani = FuncAnimation(fig, animate, frames=range(0, (max_year_ani-min_year_ani)*12 + 1,months_step), fargs=f_args, interval=200)
     ani.save('temp_animation.gif', writer=PillowWriter(fps=2))
