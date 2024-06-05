@@ -465,10 +465,16 @@ def get_frame_radarplot(full_data, clean_peaks, clean_troughs, peak_model, troug
     axs[1, 1].set_title('2030 Prediction')
     # axs[1, 1].set_xlabel('Date')
     axs[1, 1].set_ylabel('Price in 2030')
-    axs[1, 1].set_xlim(min_x, max_x)    
-    max_y_2030 = max_2030_peak*1.1
+    # we define max x as the last date where price_close is not null
+    max_x_date = pd.to_datetime('2030-01-01')
+    print('XXXXXXXXXXXXXXXXXXXXX  Max x date:', max_x_date)
+    # we add 3 months to the max_x_date
+    # max_x_date = max_x_date + pd.DateOffset(months=12)
+    axs[1, 1].set_xlim(min_x, max_x_date)    
+    max_y_2030 = max_2030_peak*2
     axs[1, 1].set_ylim([0, max_y_2030])
     axs[1, 1].yaxis.set_major_formatter('${:,.0f}'.format)
+    x_ticks = pd.date_range(start=min_x, end=max_x_date, periods=num_ticks).to_pydatetime()
     axs[1, 1].set_xticks(x_ticks)
     axs[1, 1].set_xticklabels([tick.year for tick in x_ticks])
 
@@ -479,12 +485,15 @@ def get_frame_radarplot(full_data, clean_peaks, clean_troughs, peak_model, troug
     axs[1, 2].set_title('2040 Prediction')
     # axs[1, 2].set_xlabel('Date')
     axs[1, 2].set_ylabel('Price in 2040')
-    axs[1, 2].set_xlim(min_x, max_x)
+    max_x_date = pd.to_datetime('2040-01-01')
     
-    max_y_2040 = max_2040_peak*1.1
+    axs[1, 2].set_xlim(min_x, max_x_date)
+    
+    max_y_2040 = max_2040_peak*2
 
     axs[1, 2].set_ylim([0, max_y_2040])
     axs[1, 2].yaxis.set_major_formatter('${:,.0f}'.format)
+    x_ticks = pd.date_range(start=min_x, end=max_x_date, periods=num_ticks).to_pydatetime()
     axs[1, 2].set_xticks(x_ticks)
     axs[1, 2].set_xticklabels([tick.year for tick in x_ticks])
 
