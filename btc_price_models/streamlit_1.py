@@ -147,7 +147,7 @@ def get_frame_plot(full_data, clean_peaks, clean_troughs, peak_model, trough_mod
     print('Here alpha:', alpha)
 
     if ax is None:
-        fig, axs = plt.subplots(1, 3, figsize=(14, 7.25))
+        fig, axs = plt.subplots(1, 3, figsize=(16, 11))
     else:
         fig, axs = plt.gcf(), ax
 
@@ -292,9 +292,10 @@ def get_frame_plot(full_data, clean_peaks, clean_troughs, peak_model, trough_mod
 
     return fig, axs
 
-def get_frame_radarplot(full_data, clean_peaks, clean_troughs, peak_model, trough_model, average_model_prices, min_x, max_x, min_y, max_y, symbol, peak_model_params, trough_model_params, average_model_params, peak_r2, trough_r2, current_date=None, alpha=1, transparency=False, shaded=False, ax=None, prediction_2030_peak=None, prediction_2030_trough=None):
+                        # full_data, clean_peaks, clean_troughs, peak_model_prices, trough_model_prices, average_model_prices, min_x, max_x, min_y, max_y, symbol, peak_model_params, trough_model_params, average_model_params, peak_r2, trough_r2, current_date, alpha, transparency, shaded, prediction_2030_peak, prediction_2040_peak
+def get_frame_radarplot(full_data, clean_peaks, clean_troughs, peak_model, trough_model, average_model_prices, min_x, max_x, min_y, max_y, symbol, peak_model_params, trough_model_params, average_model_params, peak_r2, trough_r2, current_date=None, alpha=1, transparency=False, shaded=False, max_2030_peak=None, max_2040_peak=None, ax=None):
     if ax is None:
-        fig, axs = plt.subplots(2, 3, figsize=(16, 10))
+        fig, axs = plt.subplots(2, 3, figsize=(16, 11))
     else:
         fig, axs = plt.gcf(), ax
 
@@ -312,7 +313,7 @@ def get_frame_radarplot(full_data, clean_peaks, clean_troughs, peak_model, troug
         max_x = pd.to_datetime(max_x)
         if max_x > full_data['date'].max():
             max_x = full_data['date'].max()
-    print('Here is full data:', full_data)
+    # print('Here is full data:', full_data)
     axs[0, 0].plot(full_data['date'], full_data['close_price'], label='BTC Price', color='blue')
     axs[0, 0].scatter(full_data['date'][clean_peaks], full_data['close_price'][clean_peaks], color='red', label='Peaks', alpha=alpha)
     axs[0, 0].scatter(full_data['date'][clean_troughs], full_data['close_price'][clean_troughs], color='green', label='Troughs', alpha=alpha)
@@ -375,6 +376,8 @@ def get_frame_radarplot(full_data, clean_peaks, clean_troughs, peak_model, troug
     if average_model_prices is not None:
         # st.dataframe(full_data)
         date_index_2030 = full_data[full_data['date'] == pd.to_datetime('2030-01-01')].index[0]
+        prediction_2030_peak = peak_model[date_index_2030]
+        prediction_2030_trough = trough_model[date_index_2030]
         prediction_2030_mid = average_model_prices[date_index_2030]
         try:
             current_date_index = full_data[full_data['date'] == current_date].index[0]
@@ -385,6 +388,8 @@ def get_frame_radarplot(full_data, clean_peaks, clean_troughs, peak_model, troug
             mid_r2 = (peak_r2 + trough_r2) / 2
         except:
             mid_r2 = np.nan
+
+
     axs[1, 0].scatter([peak_r2], [prediction_2030_peak], color='red', label='Peaks', alpha=alpha)
     axs[1, 0].scatter([trough_r2], [prediction_2030_trough], color='green', label='Troughs', alpha=alpha)
     axs[1, 0].scatter(mid_r2, [prediction_2030_mid], color='orange', label='Mid', alpha=alpha)
@@ -401,18 +406,46 @@ def get_frame_radarplot(full_data, clean_peaks, clean_troughs, peak_model, troug
     peak_price_predictions = np.full(len(full_data), np.nan)
     trough_price_predictions = np.full(len(full_data), np.nan)
     mid_price_predictions = np.full(len(full_data), np.nan)
+
+    peak_price_predictions_2040 = np.full(len(full_data), np.nan)
+    trough_price_predictions_2040 = np.full(len(full_data), np.nan)
+    mid_price_predictions_2040 = np.full(len(full_data), np.nan)
     
     
-    if current_date_index is not None and full_data.loc[current_date_index, 'date'].strftime("%Y-%m-%d") < datetime.datetime.now().strftime("%Y-%m-%d"):
+    if current_date_index is not None and full_data.loc[current_date_index, 'date'].strftime("%Y-%m-%d") <= datetime.datetime.now().strftime("%Y-%m-%d"):
+        print('!!!!!!! PREDICTION 2030 !!!!!!!!!!!!!')
+        print('Current date:', current_date)
+        print('Current date index:', current_date_index)
+        print('2030 prediction peak:', prediction_2030_peak)
+        print('2030 prediction trough:', prediction_2030_trough)
+        print('2030 prediction mid:', prediction_2030_mid)
         current_date_index = full_data[full_data['date'] == current_date].index[0]
         date_index_2030 = full_data[full_data['date'] == pd.to_datetime('2030-01-01')].index[0]
         prediction_2030_mid = average_model_prices[date_index_2030]
+        prediction_2030_peak = peak_model[date_index_2030]
+        prediction_2030_trough = trough_model[date_index_2030]
         if current_date_index is not None:
             peak_price_predictions[current_date_index] = prediction_2030_peak
             trough_price_predictions[current_date_index] = prediction_2030_trough
             mid_price_predictions[current_date_index] = prediction_2030_mid
         else:
             print('Current date not in data')
+
+        print('!!!!! PREDICTION 2040 !!!!!!')
+        date_index_2040 = full_data[full_data['date'] == pd.to_datetime('2040-01-01')].index[0]
+        prediction_2040_peak = peak_model[date_index_2040]
+        prediction_2040_trough = trough_model[date_index_2040]
+        prediction_2040_mid = average_model_prices[date_index_2040]
+        print('2040 prediction peak:', prediction_2040_peak)
+        print('2040 prediction trough:', prediction_2040_trough)
+        print('2040 prediction mid:', prediction_2040_mid)
+        if current_date_index is not None:
+            peak_price_predictions_2040[current_date_index] = prediction_2040_peak
+            trough_price_predictions_2040[current_date_index] = prediction_2040_trough
+            mid_price_predictions_2040[current_date_index] = prediction_2040_mid
+
+
+
 
 
         # we calculate the mid price prediction for 1st january 2030
@@ -426,12 +459,29 @@ def get_frame_radarplot(full_data, clean_peaks, clean_troughs, peak_model, troug
     axs[1, 1].set_xlabel('Date')
     axs[1, 1].set_ylabel('Price in 2030')
     axs[1, 1].set_xlim(min_x, max_x)    
-    axs[1, 1].set_ylim([0, max_y])
+    max_y_2030 = max_2030_peak*1.1
+    axs[1, 1].set_ylim([0, max_y_2030])
     axs[1, 1].yaxis.set_major_formatter('${:,.0f}'.format)
     axs[1, 1].set_xticks(x_ticks)
     axs[1, 1].set_xticklabels([tick.year for tick in x_ticks])
 
+    axs[1, 2].scatter(full_data['date'], peak_price_predictions_2040, color='red', label='2040 Prediction', alpha=1)
+    axs[1, 2].scatter(full_data['date'], trough_price_predictions_2040, color='green', label='2040 Prediction', alpha=1)
+    axs[1, 2].scatter(full_data['date'], mid_price_predictions_2040, color='orange', label='2040 Prediction', alpha=1)
 
+    axs[1, 2].set_title('2040 Prediction')
+    axs[1, 2].set_xlabel('Date')
+    axs[1, 2].set_ylabel('Price in 2040')
+    axs[1, 2].set_xlim(min_x, max_x)
+    
+    max_y_2040 = max_2040_peak*1.1
+
+    axs[1, 2].set_ylim([0, max_y_2040])
+    axs[1, 2].yaxis.set_major_formatter('${:,.0f}'.format)
+    axs[1, 2].set_xticks(x_ticks)
+    axs[1, 2].set_xticklabels([tick.year for tick in x_ticks])
+
+   
 
 
 
@@ -526,7 +576,7 @@ def extend_data(full_data,final_year_model_prediction = 2040):
 
     return full_data
 
-def animate(i, full_data, distance, prominence, divisions,min_x, max_x,min_y, max_y, symbol, min_date_model_index, min_year_ani,axs, alpha, transparency, shaded = False, style = 'Simple'):
+def animate(i, full_data, distance, prominence, divisions,min_x, max_x,min_y, max_y, symbol, min_date_model_index, min_year_ani,axs, alpha, transparency, shaded = False, style = 'Simple', max_2030_peak=None,max_2040_peak=None):
     print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
     current_date = pd.Timestamp(f'{min_year_ani}-01-01') + pd.DateOffset(months=i)
     print('Current date:', current_date)
@@ -549,7 +599,7 @@ def animate(i, full_data, distance, prominence, divisions,min_x, max_x,min_y, ma
     if style == 'Simple':
         axs = get_frame_plot(temp_data, clean_peaks, clean_troughs, peak_model_prices, trough_model_prices, average_model_prices, min_x, max_x, min_y, max_y, symbol, peak_model_params, trough_model_params, average_model_params, peak_r2, trough_r2, current_date, shaded=shaded, alpha=alpha, transparency=transparency)
     elif style == 'Radar':
-        axs = get_frame_radarplot(temp_data, clean_peaks, clean_troughs, peak_model_prices, trough_model_prices, average_model_prices, min_x, max_x, min_y, max_y, symbol, peak_model_params, trough_model_params, average_model_params, peak_r2, trough_r2, current_date, alpha, transparency, shaded, ax=axs, prediction_2030_peak = prediction_2030_peak, prediction_2030_trough = prediction_2030_trough)
+        axs = get_frame_radarplot(temp_data, clean_peaks, clean_troughs, peak_model_prices, trough_model_prices, average_model_prices, min_x, max_x, min_y, max_y, symbol, peak_model_params, trough_model_params, average_model_params, peak_r2, trough_r2, current_date, alpha, transparency, shaded, ax=axs, max_2030_peak= max_2030_peak, max_2040_peak= max_2040_peak)
 
 
     
@@ -558,7 +608,7 @@ def animate(i, full_data, distance, prominence, divisions,min_x, max_x,min_y, ma
 
 # %%
 # Title of the app
-st.title('Peak and Trough Detection')
+st.title('Price Modelling')
 
 # Define default values
 symbol = 'BTC-USD'
@@ -567,12 +617,13 @@ start = datetime.datetime(1995, 1, 1)
 # Select box for symbol selection
 sidebar = st.sidebar
 symbol = sidebar.selectbox('Select a symbol', ['SPY', 'BTC-USD', 'ETH-USD','SOL-USD','TSLA', 'GOOG', 'MSFT','QQQ','AMZN','IBM','INTC'])
-final_year_model_prediction = sidebar.slider('Final Prediction', 2025, 2050, 2030,5)
+max_x_date = sidebar.slider('Final Prediction', 2025, 2050, 2030,5)
+final_year_model_prediction = 2050
 
 # Download historical data and cache it
 historical_data = load_data(symbol, start)
 full_data = extend_data(historical_data, final_year_model_prediction)
-current_date = full_data['date'].max()
+current_date = historical_data['date'].max()
 
 log_data = np.log(full_data['close_price'])
 log10_hist = np.log10(full_data['close_price'])
@@ -586,10 +637,28 @@ default_prominence = (np.ceil(log10_hist.max()) - np.floor(log10_hist.min()))/20
 prominence = sidebar.slider('Prominence', 0.1, 1.0, 0.2,0.1)
 divisions = sidebar.slider('Divisions', 2, 10, 4)
 
-st.write('Min date loaded: ', full_data['date'].min())
-st.write('Max date loaded: ', full_data['date'].max())
+# to calc the defualt min_model date, we want to get the index in the middle of the log index of dates. 
+# we get log_indeces of dates, and we get the index in the middle
+# print('original index:', full_data.index)
+log_index_dates = np.log10(full_data.index)
+# print('log index:', log_index_dates)
+print('INDEX!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+print('max index:', historical_data.index.max())
+print('max date:', historical_data['date'].max())
+print('min date:', historical_data['date'].min())
 
-min_date_model = pd.to_datetime(sidebar.date_input('Min Date Model', value=full_data['date'].min()))
+
+print('max log index:', log_index_dates.max())
+print('min log index:', log_index_dates.min())
+log_middle_index = log_index_dates.max()// 2
+print('middle index:', 10**log_middle_index)
+
+def_middle_date = full_data['date'][10**log_middle_index]
+print('default middle date:', def_middle_date)
+
+
+# min_date_model_default = 
+min_date_model = pd.to_datetime(sidebar.date_input('Min Date Model', value=def_middle_date))
 min_date_model_index = full_data[full_data['date'] > min_date_model].index.min()
 
 clean_peaks, clean_troughs = get_peaks_troughs(log_data, distance, prominence, divisions, min_date_model_index)
@@ -598,7 +667,7 @@ retained_peak_prices = np.array(log_data[clean_peaks])
 retained_trough_prices = np.array(log_data[clean_troughs])
 
 min_x = sidebar.date_input('Min Date', value=full_data['date'].min())
-max_x = pd.to_datetime(f'01-01-{final_year_model_prediction}')
+max_x = pd.to_datetime(f'01-01-{max_x_date}')
 # st.text(f'Max date: {max_x}')
 # we do a base 10 log scale of historical data
 
@@ -609,11 +678,13 @@ max_y = 10**sidebar.number_input('Max Y (1e exponent)', value=default_max_y)
 
 # Plot the data
 peak_model_prices, peak_model_params, peak_r2, prediction_2030_peak, prediction_2040_peak = get_power_law_model(full_data, clean_peaks, 'Peak Model')
+print('peak prediction 2030:', prediction_2030_peak)
+print('peak prediction 2040:', prediction_2040_peak)
 trough_model_prices, trough_model_params, trough_r2, prediction_2030_trough, prediction_2040_trough = get_power_law_model(full_data, clean_troughs, 'Trough Model')
 average_model_params = (peak_model_params + trough_model_params) / 2 if peak_model_params is not None and trough_model_params is not None else None
 average_model_prices = np.exp(average_model_params[1]) * full_data.index**average_model_params[0] if average_model_params is not None else [None] * len(full_data)
 
-style = sidebar.radio('Choose chart style', ['Simple','Radar'])
+style = sidebar.radio('Choose chart style', ['Simple','Radar'], index=1)
 alpha = sidebar.slider('Alpha', 0.0, 1.0, 0.5)
 transparency = sidebar.checkbox('Trailing')
 shaded = sidebar.checkbox('Shaded Area')
@@ -622,15 +693,15 @@ months_step = sidebar.slider('Months step', 1, 60, 12)
 if style == 'Simple':
     fig, ax = get_frame_plot(full_data, clean_peaks, clean_troughs, peak_model_prices, trough_model_prices, average_model_prices, min_x, max_x, min_y, max_y, symbol, peak_model_params, trough_model_params, average_model_params, peak_r2, trough_r2, current_date, shaded=shaded, alpha=alpha, transparency=transparency)
 elif style == 'Radar':
-    fig, ax = get_frame_radarplot(full_data, clean_peaks, clean_troughs, peak_model_prices, trough_model_prices, average_model_prices, min_x, max_x, min_y, max_y, symbol, peak_model_params, trough_model_params, average_model_params, peak_r2, trough_r2, current_date, alpha, transparency, shaded)
+    fig, ax = get_frame_radarplot(full_data, clean_peaks, clean_troughs, peak_model_prices, trough_model_prices, average_model_prices, min_x, max_x, min_y, max_y, symbol, peak_model_params, trough_model_params, average_model_params, peak_r2, trough_r2, current_date, alpha, transparency, shaded, prediction_2030_peak, prediction_2040_peak)
 
 
 min_year_ani = sidebar.slider('Min Year Animation', 1995, 2025, 2020)
 max_year_ani = sidebar.slider('Max Year Animation', 2025, 2050, 2030)
 
 if st.button('Animate'):
-    fig, axs = plt.subplots(1 if style == 'Simple' else 2, 3, figsize=(14, 7))
-    f_args = (full_data, distance, prominence, divisions, min_x, max_x, min_y, max_y, symbol, min_date_model_index, min_year_ani,axs, alpha, transparency, shaded, style)
+    fig, axs = plt.subplots(1 if style == 'Simple' else 2, 3, figsize=(14, 8))
+    f_args = (full_data, distance, prominence, divisions, min_x, max_x, min_y, max_y, symbol, min_date_model_index, min_year_ani,axs, alpha, transparency, shaded, style, prediction_2030_peak,prediction_2040_peak)
     ani = FuncAnimation(fig, animate, frames=range(0, (max_year_ani-min_year_ani)*12 + 1,months_step), fargs=f_args, interval=200)
     ani.save('temp_animation.gif', writer=PillowWriter(fps=2))
     plt.close(fig)
@@ -639,3 +710,6 @@ if st.button('Animate'):
 else:
     st.pyplot(fig)
 
+
+st.write('Min date loaded: ', full_data['date'].min())
+st.write('Max date loaded: ', full_data['date'].max())
