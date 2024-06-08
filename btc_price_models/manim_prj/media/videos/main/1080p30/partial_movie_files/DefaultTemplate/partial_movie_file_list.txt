@@ -1,0 +1,4 @@
+# This file is used internally by FFMPEG.
+file 'file:C:/Github/repos/swanhunt/btc_price_models/manim_prj/media/videos/main/1080p30/partial_movie_files/DefaultTemplate/3445125925_3138598014_223132457.mp4'
+file 'file:C:/Github/repos/swanhunt/btc_price_models/manim_prj/media/videos/main/1080p30/partial_movie_files/DefaultTemplate/1025971384_2374734652_3256495558.mp4'
+file 'file:C:/Github/repos/swanhunt/btc_price_models/manim_prj/media/videos/main/1080p30/partial_movie_files/DefaultTemplate/1025971384_208288666_3256495558.mp4'
