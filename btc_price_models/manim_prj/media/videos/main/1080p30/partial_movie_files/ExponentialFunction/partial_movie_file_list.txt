@@ -1,0 +1,11 @@
+# This file is used internally by FFMPEG.
+file 'file:C:/Github/repos/swanhunt/btc_price_models/manim_prj/media/videos/main/1080p30/partial_movie_files/ExponentialFunction/3445125925_2205061385_1067758627.mp4'
+file 'file:C:/Github/repos/swanhunt/btc_price_models/manim_prj/media/videos/main/1080p30/partial_movie_files/ExponentialFunction/1025971384_3890345977_1318128969.mp4'
+file 'file:C:/Github/repos/swanhunt/btc_price_models/manim_prj/media/videos/main/1080p30/partial_movie_files/ExponentialFunction/1025971384_467831668_2606720504.mp4'
+file 'file:C:/Github/repos/swanhunt/btc_price_models/manim_prj/media/videos/main/1080p30/partial_movie_files/ExponentialFunction/1025971384_3890345977_939135458.mp4'
+file 'file:C:/Github/repos/swanhunt/btc_price_models/manim_prj/media/videos/main/1080p30/partial_movie_files/ExponentialFunction/1025971384_1889043010_290687281.mp4'
+file 'file:C:/Github/repos/swanhunt/btc_price_models/manim_prj/media/videos/main/1080p30/partial_movie_files/ExponentialFunction/1025971384_3890345977_4089256731.mp4'
+file 'file:C:/Github/repos/swanhunt/btc_price_models/manim_prj/media/videos/main/1080p30/partial_movie_files/ExponentialFunction/1025971384_1934054826_241878291.mp4'
+file 'file:C:/Github/repos/swanhunt/btc_price_models/manim_prj/media/videos/main/1080p30/partial_movie_files/ExponentialFunction/1025971384_3890345977_1555440329.mp4'
+file 'file:C:/Github/repos/swanhunt/btc_price_models/manim_prj/media/videos/main/1080p30/partial_movie_files/ExponentialFunction/1025971384_1029944040_2247669468.mp4'
+file 'file:C:/Github/repos/swanhunt/btc_price_models/manim_prj/media/videos/main/1080p30/partial_movie_files/ExponentialFunction/1025971384_1141282389_2955466576.mp4'
